@@ -5,6 +5,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -22,8 +23,8 @@ public class MainView extends View {
     private static final float MERGING_ACCELERATION = (float) -0.5;
     private static final float INITIAL_VELOCITY = (1 - MERGING_ACCELERATION) / 4;
     public final int numCellTypes = 21;
-    private final BitmapDrawable[] bitmapCell = new BitmapDrawable[numCellTypes];
     public final MainGame game;
+    private final BitmapDrawable[] bitmapCell = new BitmapDrawable[numCellTypes];
     //Internal variables
     private final Paint paint = new Paint();
     public boolean hasSaveState = false;
@@ -36,6 +37,10 @@ public class MainView extends View {
     public int sYIcons;
     public int sXNewGame;
     public int sXUndo;
+    public int sXReady;
+    public int sYReady;
+    public int eXReady;
+    public int eYReady;
     public int iconSize;
     //Misc
     boolean refreshLastTime = true;
@@ -46,6 +51,7 @@ public class MainView extends View {
     private float bodyTextSize;
     private float headerTextSize;
     private float instructionsTextSize;
+    private float readyTextSize;
     private float gameOverTextSize;
     //Layout variables
     private int cellSize = 0;
@@ -54,6 +60,7 @@ public class MainView extends View {
     private int gridWidth = 0;
     private int textPaddingSize;
     private int iconPaddingSize;
+    private int readyPaddingSize;
     //Assets
     private Drawable backgroundRectangle;
     private Drawable lightUpRectangle;
@@ -240,6 +247,38 @@ public class MainView extends View {
                 sXUndo + iconSize - iconPaddingSize,
                 sYIcons + iconSize - iconPaddingSize
         );
+    }
+
+    private void drawReadyButton(Canvas canvas) {
+        paint.setTextSize(readyTextSize);
+        paint.setTextAlign(Paint.Align.LEFT);
+        Paint.FontMetrics fm = new Paint.FontMetrics();
+        paint.getFontMetrics(fm);
+
+        drawDrawable(canvas,
+                backgroundRectangle,
+                sXReady,
+                sYReady,
+                eXReady,
+                eYReady
+        );
+
+
+        canvas.drawText(getResources().getString(R.string.ready), sXReady + textSize / 2, eYReady - textSize / 3, paint);
+        //drawDigit(canvas, paint, sXReady, sYReady,getResources().getString(R.string.ready) );
+    }
+
+    private void drawDigit(Canvas canvas, Paint tempTextPaint,  float cX, float cY, String text) {
+
+        tempTextPaint.setAntiAlias(true);
+        tempTextPaint.setStyle(Paint.Style.FILL);
+
+        float textWidth = tempTextPaint.measureText(text);
+        //if cX and cY are the origin coordinates of the your rectangle
+        //cX-(textWidth/2) = The x-coordinate of the origin of the text being drawn
+        //cY+(textSize/2) =  The y-coordinate of the origin of the text being drawn
+
+        canvas.drawText(text, cX-(textWidth/2), cY+(textSize/2), tempTextPaint);
     }
 
     private void drawHeader(Canvas canvas) {
@@ -430,6 +469,7 @@ public class MainView extends View {
         drawBackground(canvas);
         drawBackgroundGrid(canvas);
         drawInstructions(canvas);
+        drawReadyButton(canvas);
 
     }
 
@@ -526,6 +566,10 @@ public class MainView extends View {
             1000f * (widthWithPadding / (paint.measureText(getResources().getString(R.string.instructions)))),
             textSize / 1.5f
         );
+        readyTextSize = Math.min(
+                1000f * ((widthWithPadding - gridWidth * 2) / (paint.measureText(getResources().getString(R.string.ready)))),
+                textSize * 1.5f
+        );
         gameOverTextSize = Math.min(
             Math.min(
                 1000f * ((widthWithPadding - gridWidth * 2) / (paint.measureText(getResources().getString(R.string.game_over)))),
@@ -559,6 +603,17 @@ public class MainView extends View {
         sYIcons = (startingY + eYAll) / 2 - iconSize / 2;
         sXNewGame = (endingX - iconSize);
         sXUndo = sXNewGame - iconSize * 3 / 2 - iconPaddingSize;
+
+        paint.setTextSize(readyTextSize);
+        int middleX = (endingX - startingX) / 2;
+        float measureText = paint.measureText(getResources().getString(R.string.ready));
+        Rect bounds = new Rect();
+        paint.getTextBounds(getResources().getString(R.string.ready), 0, getResources().getString(R.string.ready).length(), bounds);
+        sXReady = (int)(width/2 - bounds.width() / 2 - textSize / 2);
+        eXReady = (int)(width/2 + bounds.width() / 2 + textSize / 2);
+        eYReady = height - bounds.height() / 2 + (int)textSize / 3;
+        sYReady = eYReady - bounds.height() - (int)textSize / 3;
+
         resyncTime();
     }
 
