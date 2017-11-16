@@ -3,6 +3,7 @@ package cyberse.brain2048;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -274,6 +275,8 @@ public class MainGame {
     public void move(int xx, int yy, int direction) {
         aGrid.cancelAnimations();
         // 0: up, 1: right, 2: down, 3: left
+        Log.d("move x:", Integer.toString(xx));
+        Log.d("move y:", Integer.toString(yy));
         if (!isActive()) {
             return;
         }
@@ -284,48 +287,48 @@ public class MainGame {
         prepareTiles();
 
 
-                Cell cell = new Cell(xx, yy);
-                Tile tile = grid.getCellContent(cell);
+        Cell cell = new Cell(xx, yy);
+        Tile tile = grid.getCellContent(cell);
 
-                if (tile != null) {
-                    Cell[] positions = findFarthestPosition(cell, vector);
-                    Tile next = grid.getCellContent(positions[1]);
-                    if (next != null  && next.getValue() == tile.getValue() && next.getMergedFrom() == null) {
-                        Tile merged = new Tile(positions[1], tile.getValue() + 1);
-                        Tile[] temp = {tile, next};
-                        merged.setMergedFrom(temp);
+        if (tile != null) {
+            Cell[] positions = findFarthestPosition(cell, vector);
+            Tile next = grid.getCellContent(positions[1]);
+            if (next != null  && next.getValue() == tile.getValue() && next.getMergedFrom() == null) {
+                Tile merged = new Tile(positions[1], tile.getValue() + 1);
+                Tile[] temp = {tile, next};
+                merged.setMergedFrom(temp);
 
-                        grid.insertTile(merged);
-                        grid.removeTile(tile);
+                grid.insertTile(merged);
+                grid.removeTile(tile);
 
-                        // Converge the two tiles' positions
-                        tile.updatePosition(positions[1]);
+                // Converge the two tiles' positions
+                tile.updatePosition(positions[1]);
 
-                        int[] extras = {xx, yy};
-                        aGrid.startAnimation(merged.getX(), merged.getY(), MOVE_ANIMATION,
-                                MOVE_ANIMATION_TIME, 0, extras); //Direction: 0 = MOVING MERGED
-                        aGrid.startAnimation(merged.getX(), merged.getY(), MERGE_ANIMATION,
-                                SPAWN_ANIMATION_TIME, MOVE_ANIMATION_TIME, null);
+                int[] extras = {xx, yy};
+                aGrid.startAnimation(merged.getX(), merged.getY(), MOVE_ANIMATION,
+                        MOVE_ANIMATION_TIME, 0, extras); //Direction: 0 = MOVING MERGED
+                aGrid.startAnimation(merged.getX(), merged.getY(), MERGE_ANIMATION,
+                        SPAWN_ANIMATION_TIME, MOVE_ANIMATION_TIME, null);
 
-                        // Update the score
-                        score = score + merged.getValue();
-                        highScore = Math.max(score, highScore);
+                // Update the score
+                score = score + merged.getValue();
+                highScore = Math.max(score, highScore);
 
-                        // The mighty 2048 tile
-                        if (merged.getValue() >= winValue() && !gameWon()) {
-                            gameState = gameState + GAME_WIN; // Set win state
-                            endGame();
-                        }
-                    } else {
-                        moveTile(tile, positions[0]);
-                        int[] extras = {xx, yy, 0};
-                        aGrid.startAnimation(positions[0].getX(), positions[0].getY(), MOVE_ANIMATION, MOVE_ANIMATION_TIME, 0, extras); //Direction: 1 = MOVING NO MERGE
-                    }
-
-                    if (!positionsEqual(cell, tile)) {
-                        moved = true;
-                    }
+                // The mighty 2048 tile
+                if (merged.getValue() >= winValue() && !gameWon()) {
+                    gameState = gameState + GAME_WIN; // Set win state
+                    endGame();
                 }
+            } else {
+                moveTile(tile, positions[0]);
+                int[] extras = {xx, yy, 0};
+                aGrid.startAnimation(positions[0].getX(), positions[0].getY(), MOVE_ANIMATION, MOVE_ANIMATION_TIME, 0, extras); //Direction: 1 = MOVING NO MERGE
+            }
+
+            if (!positionsEqual(cell, tile)) {
+                moved = true;
+            }
+        }
 
         if (moved) {
             saveUndoState();

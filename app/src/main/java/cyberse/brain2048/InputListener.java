@@ -46,7 +46,6 @@ class InputListener implements View.OnTouchListener {
                 lastDx = 0;
                 lastDy = 0;
                 hasMoved = false;
-                mView.clickedCell((int)x,(int)y);
                 beganOnIcon = iconPressed(mView.sXNewGame, mView.sYIcons)
                               || iconPressed(mView.sXUndo, mView.sYIcons);
                 return true;
@@ -76,31 +75,34 @@ class InputListener implements View.OnTouchListener {
                     if (lastDy == 0) {
                         lastDy = dy;
                     }
-                    if (pathMoved() > SWIPE_MIN_DISTANCE * SWIPE_MIN_DISTANCE && !hasMoved) {
+                    int position[] = mView.clickedCell((int)previousX, (int)previousY);
+                    if (pathMoved() > SWIPE_MIN_DISTANCE * SWIPE_MIN_DISTANCE && !hasMoved && position != null) {
+                        int xx = position[0];
+                        int yy = position[1];
                         boolean moved = false;
                         //Vertical
                         if (((dy >= SWIPE_THRESHOLD_VELOCITY && Math.abs(dy) >= Math.abs(dx)) || y - startingY >= MOVE_THRESHOLD) && previousDirection % 2 != 0) {
                             moved = true;
                             previousDirection = previousDirection * 2;
                             veryLastDirection = 2;
-                            mView.game.move(2);
+                            mView.game.move(xx, yy, 2);
                         } else if (((dy <= -SWIPE_THRESHOLD_VELOCITY && Math.abs(dy) >= Math.abs(dx)) || y - startingY <= -MOVE_THRESHOLD) && previousDirection % 3 != 0) {
                             moved = true;
                             previousDirection = previousDirection * 3;
                             veryLastDirection = 3;
-                            mView.game.move(0);
+                            mView.game.move(xx, yy, 0);
                         }
                         //Horizontal
                         if (((dx >= SWIPE_THRESHOLD_VELOCITY && Math.abs(dx) >= Math.abs(dy)) || x - startingX >= MOVE_THRESHOLD) && previousDirection % 5 != 0) {
                             moved = true;
                             previousDirection = previousDirection * 5;
                             veryLastDirection = 5;
-                            mView.game.move(1);
+                            mView.game.move(xx, yy, 1);
                         } else if (((dx <= -SWIPE_THRESHOLD_VELOCITY && Math.abs(dx) >= Math.abs(dy)) || x - startingX <= -MOVE_THRESHOLD) && previousDirection % 7 != 0) {
                             moved = true;
                             previousDirection = previousDirection * 7;
                             veryLastDirection = 7;
-                            mView.game.move(3);
+                            mView.game.move(xx, yy, 3);
                         }
                         if (moved) {
                             hasMoved = true;
