@@ -280,6 +280,26 @@ public class MainView extends View {
         }
     }
 
+    public void clickedCell(int x, int y) {
+        Resources resources = getResources();
+        Drawable backgroundCell = resources.getDrawable(R.drawable.cell_rectangle);
+        // Outputting the game grid
+        for (int xx = 0; xx < game.numSquaresX; xx++) {
+            for (int yy = 0; yy < game.numSquaresY; yy++) {
+                int sX = startingX + gridWidth + (cellSize + gridWidth) * xx;
+                int eX = sX + cellSize;
+                int sY = startingY + gridWidth + (cellSize + gridWidth) * yy;
+                int eY = sY + cellSize;
+                if (x >= sX && x <= eX && y >= sY && y <= eY){
+                    Log.d("Click x", Integer.toString(xx));
+                    Log.d("Click y", Integer.toString(yy));
+                    return;
+                }
+
+            }
+        }
+    }
+
     private void drawCells(Canvas canvas) {
         paint.setTextSize(textSize);
         paint.setTextAlign(Paint.Align.CENTER);

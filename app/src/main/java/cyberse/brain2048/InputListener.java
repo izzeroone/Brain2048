@@ -46,6 +46,7 @@ class InputListener implements View.OnTouchListener {
                 lastDx = 0;
                 lastDy = 0;
                 hasMoved = false;
+                mView.clickedCell((int)x,(int)y);
                 beganOnIcon = iconPressed(mView.sXNewGame, mView.sYIcons)
                               || iconPressed(mView.sXUndo, mView.sYIcons);
                 return true;
