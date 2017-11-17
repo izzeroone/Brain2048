@@ -20,6 +20,7 @@ public class MainGame {
     private static final long SPAWN_ANIMATION_TIME = MainView.BASE_ANIMATION_TIME;
     private static final long NOTIFICATION_DELAY_TIME = MOVE_ANIMATION_TIME + SPAWN_ANIMATION_TIME;
     private static final long NOTIFICATION_ANIMATION_TIME = MainView.BASE_ANIMATION_TIME * 5;
+    private static  final int MAX_MOVE = 100;
     private static final int startingMaxValue = 2048;
     //Odd state = game is not active
     //Even state = game is active
@@ -40,6 +41,7 @@ public class MainGame {
     private final MainView mView;
     public Grid grid = null;
     public Grid winGrid = null;
+    public Grid tempGrid = null;
     public AnimationGrid aGrid;
     public boolean canUndo;
     public long score = 0;
@@ -74,11 +76,12 @@ public class MainGame {
         score = 0;
         gameState = GAME_NORMAL;
         addStartTiles();
-        saveWinState();
-//        for(int i = 0; i < numSquaresX; i++)
-//        {
-//            move((int)(Math.random() * 4));
-//        }
+        if(tempGrid == null){
+            tempGrid = new Grid(numSquaresX, numSquaresY);
+        }
+        copyGridState(tempGrid, grid);
+        makeWinningState();
+        copyGridState(winGrid, grid);
         aGrid.cancelAnimations();
         mView.refreshLastTime = true;
         mView.resyncTime();
@@ -103,19 +106,12 @@ public class MainGame {
     {
         if(grid.field[x][y] == null)
         {
-            int value = (int)(Math.random() * 5) + 1;
+            int value = (int)(Math.random() * 3) + 1;
             Tile tile = new Tile(new Cell(x, y), value);
             spawnTile(tile);
         }
     }
 
-    private void addRandomTile() {
-        if (grid.isCellsAvailable()) {
-            int value =  1;
-            Tile tile = new Tile(grid.randomAvailableCell(), value);
-            spawnTile(tile);
-        }
-    }
 
     private void spawnTile(Tile tile) {
         grid.insertTile(tile);
@@ -158,17 +154,34 @@ public class MainGame {
         lastGameState = bufferGameState;
     }
 
-    private void saveWinState(){
-        for (int xx = 0; xx < grid.field.length; xx++) {
-            for (int yy = 0; yy < grid.field[0].length; yy++) {
-                if (grid.field[xx][yy] == null) {
-                    winGrid.field[xx][yy] = null;
+    public void gameStart()
+    {
+        copyGridState(grid, tempGrid);
+        aGrid.cancelAnimations();
+        mView.refreshLastTime = true;
+        mView.resyncTime();
+        mView.invalidate();
+    }
+
+    private void makeWinningState()
+    {
+        int loop = 0;
+        while(grid.countOccupiedCell() > numSquaresX + 1 && loop <= MAX_MOVE){
+            move((int)(Math.random() * 4));
+        }
+    }
+
+    private void copyGridState(Grid target, Grid source)
+    {
+        for (int xx = 0; xx < source.field.length; xx++) {
+            for (int yy = 0; yy < source.field[0].length; yy++) {
+                if(source.field[xx][yy] == null){
+                    target.field[xx][yy] = null;
                 } else {
-                    winGrid.field[xx][yy] = new Tile(xx, yy, grid.field[xx][yy].getValue());
+                    target.field[xx][yy] = new Tile(xx, yy, source.field[xx][yy].getValue());
                 }
             }
         }
-
     }
 
     private void prepareUndoState() {

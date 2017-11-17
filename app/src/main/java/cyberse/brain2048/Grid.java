@@ -133,4 +133,16 @@ public class Grid {
             }
         }
     }
+
+    public int countOccupiedCell(){
+        int count = 0;
+        for (int xx = 0; xx < field.length; xx++) {
+            for (int yy = 0; yy < field[0].length; yy++) {
+                if(field[xx][yy] != null){
+                    count++;
+                }
+            }
+        }
+        return  count;
+    }
 }

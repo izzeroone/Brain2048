@@ -2,6 +2,7 @@ package cyberse.brain2048;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -47,7 +48,8 @@ class InputListener implements View.OnTouchListener {
                 lastDy = 0;
                 hasMoved = false;
                 beganOnIcon = iconPressed(mView.sXNewGame, mView.sYIcons)
-                              || iconPressed(mView.sXUndo, mView.sYIcons);
+                              || iconPressed(mView.sXUndo, mView.sYIcons)
+                                || rectanglePressed(mView.sXReady, mView.sYReady, mView.eXReady, mView.eYReady);
                 return true;
             case MotionEvent.ACTION_MOVE:
                 x = event.getX();
@@ -143,6 +145,9 @@ class InputListener implements View.OnTouchListener {
                     } else if (isTap(2) && inRange(mView.startingX, x, mView.endingX)
                             && inRange(mView.startingY, x, mView.endingY) && mView.continueButtonEnabled) {
                         mView.game.setEndlessMode();
+                    } else if (rectanglePressed(mView.sXReady, mView.sYReady, mView.eXReady, mView.eYReady)){
+                        Log.d("Game stared", "onTouch: ");
+                        mView.game.gameStart();
                     }
                 }
         }
@@ -156,6 +161,11 @@ class InputListener implements View.OnTouchListener {
     private boolean iconPressed(int sx, int sy) {
         return isTap(1) && inRange(sx, x, sx + mView.iconSize)
                 && inRange(sy, y, sy + mView.iconSize);
+    }
+
+    private boolean rectanglePressed(int sx, int sy, int ex, int ey)
+    {
+        return isTap(1) && inRange(sx, x, ex) && inRange(sy, y, ey);
     }
 
     private boolean inRange(float starting, float check, float ending) {
