@@ -12,9 +12,11 @@ import java.util.List;
 
 public class MainGame {
 
+    public static final int CHECK_RIGHT_ANIMATION = -2;
     public static final int SPAWN_ANIMATION = -1;
     public static final int MOVE_ANIMATION = 0;
     public static final int MERGE_ANIMATION = 1;
+    public static final int CHECK_WRONG_ANIMATION = 2;
 
     public static final int FADE_GLOBAL_ANIMATION = 0;
     private static final long MOVE_ANIMATION_TIME = MainView.BASE_ANIMATION_TIME;
@@ -81,9 +83,11 @@ public class MainGame {
         }
         copyGridState(tempGrid, grid);
         makeWinningState();
+        highScore = score;
         copyGridState(winGrid, grid);
         gameState = GAME_SHOW;
         aGrid.cancelAnimations();
+        spawnGridAnimation();
         mView.refreshLastTime = true;
         mView.resyncTime();
         mView.invalidate();
@@ -162,10 +166,12 @@ public class MainGame {
             gameState = GAME_NORMAL;
             grid.clearUndoGrid();
             canUndo = false;
+            score = 0;
 
             aGrid.cancelAnimations();
-            mView.refreshLastTime = true;
+            spawnGridAnimation();
 
+            mView.refreshLastTime = true;
             mView.resyncTime();
             mView.invalidate();
         } else if (!isActive()){
@@ -179,6 +185,17 @@ public class MainGame {
         while(grid.countOccupiedCell() > numSquaresX + 1 && loop <= MAX_MOVE){
             move((int)(Math.random() * 4));
             loop++;
+        }
+    }
+
+    private void spawnGridAnimation(){
+        for (int xx = 0; xx < grid.field.length; xx++) {
+            for (int yy = 0; yy < grid.field[0].length; yy++) {
+                if(grid.field[xx][yy] != null){
+                    aGrid.startAnimation(xx, yy, SPAWN_ANIMATION,
+                            SPAWN_ANIMATION_TIME, MOVE_ANIMATION_TIME, null); //Direction: -1 = EXPANDING
+                }
+            }
         }
     }
 
@@ -271,7 +288,6 @@ public class MainGame {
 
                         // Update the score
                         score = score + merged.getValue();
-                        highScore = Math.max(score, highScore);
                     } else {
                         moveTile(tile, positions[0]);
                         int[] extras = {xx, yy, 0};
@@ -335,7 +351,6 @@ public class MainGame {
 
                 // Update the score
                 score = score + merged.getValue();
-                highScore = Math.max(score, highScore);
 
             } else {
                 moveTile(tile, positions[0]);
@@ -387,6 +402,27 @@ public class MainGame {
             }
         }
         return true;
+    }
+
+    public void checkWinState(){
+        for(int xx = 0; xx < grid.field.length; xx++)
+        {
+            for(int yy = 0; yy < grid.field[0].length; yy++)
+            {
+                if(grid.field[xx][yy] != null  ){
+                    if(winGrid.field[xx][yy] != null && grid.field[xx][yy].getValue() == winGrid.field[xx][yy].getValue()){
+                        aGrid.startAnimation(xx, yy, CHECK_RIGHT_ANIMATION,
+                                NOTIFICATION_ANIMATION_TIME, 0, null);
+                    } else {
+//                        aGrid.startAnimation(xx, yy, CHECK_WRONG_ANIMATION,
+//                                NOTIFICATION_ANIMATION_TIME, 0, null);
+                    }
+                }
+            }
+        }
+        mView.refreshLastTime = false;
+        mView.resyncTime();
+        mView.invalidate();
     }
 
     private void endGame() {

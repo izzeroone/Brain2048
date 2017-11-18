@@ -5,7 +5,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -60,14 +59,12 @@ public class MainView extends View {
     private int gridWidth = 0;
     private int textPaddingSize;
     private int iconPaddingSize;
-    private int readyPaddingSize;
     //Assets
     private Drawable backgroundRectangle;
     private Drawable lightUpRectangle;
     private Drawable fadeRectangle;
     private Bitmap background = null;
     private BitmapDrawable loseGameOverlay;
-    private BitmapDrawable winGameContinueOverlay;
     private BitmapDrawable winGameFinalOverlay;
     private BitmapDrawable showGameOverlay;
     //Text variables
@@ -116,6 +113,7 @@ public class MainView extends View {
         if (!game.isActive() && !game.aGrid.isAnimationActive()) {
             drawNewGameButton(canvas, true);
         }
+
 
         drawCells(canvas);
 
@@ -184,7 +182,7 @@ public class MainView extends View {
         backgroundRectangle.draw(canvas);
         paint.setTextSize(titleTextSize);
         paint.setColor(getResources().getColor(R.color.text_brown));
-        canvas.drawText(getResources().getString(R.string.high_score), sXHighScore + textMiddleHighScore, titleStartYAll, paint);
+        canvas.drawText(getResources().getString(R.string.win_score), sXHighScore + textMiddleHighScore, titleStartYAll, paint);
         paint.setTextSize(bodyTextSize);
         paint.setColor(getResources().getColor(R.color.text_white));
         canvas.drawText(String.valueOf(game.highScore), sXHighScore + textMiddleHighScore, bodyStartYAll, paint);
@@ -245,6 +243,24 @@ public class MainView extends View {
                 sXUndo + iconSize - iconPaddingSize,
                 sYIcons + iconSize - iconPaddingSize
         );
+    }
+
+    private void drawCheckButton(Canvas canvas) {
+
+        drawDrawable(canvas,
+                backgroundRectangle,
+                sXReady,
+                sYReady, eXReady,
+                eYReady
+        );
+
+        drawDrawable(canvas,
+                getResources().getDrawable(R.drawable.ic_action_check),
+                sXReady + iconPaddingSize * 2,
+                sYReady + iconPaddingSize * 2, eXReady - iconPaddingSize * 2,
+                eYReady - iconPaddingSize * 2
+        );
+
     }
 
     private void drawReadyButton(Canvas canvas) {
@@ -317,7 +333,6 @@ public class MainView extends View {
                 if (currentTile != null) {
                     //Get and represent the value of the tile
                     int value = currentTile.getValue();
-                    Log.w("Value", Integer.toString(value));
                     int index = value;
 
                     //Check for any active animations
@@ -364,6 +379,42 @@ public class MainView extends View {
                             int dY = (int) ((currentY - previousY) * (cellSize + gridWidth) * (percentDone - 1) * 1.0);
                             bitmapCell[tempIndex].setBounds(sX + dX, sY + dY, eX + dX, eY + dY);
                             bitmapCell[tempIndex].draw(canvas);
+                        } else if (aCell.getAnimationType() == MainGame.CHECK_RIGHT_ANIMATION){ // Check right animation
+                            double percentDone = aCell.getPercentageDone();
+                            if(percentDone < 0.5) {// make it smaller
+                                float textScaleSize = (float) (0.5 - percentDone) * 2;
+                                paint.setTextSize(textSize * textScaleSize);
+
+                                float cellScaleSize = - cellSize / 16 * (1 - textScaleSize);
+                                bitmapCell[index].setBounds((int) (sX + cellScaleSize), (int) (sY + cellScaleSize), (int) (eX - cellScaleSize), (int) (eY - cellScaleSize));
+                                bitmapCell[index].draw(canvas);
+                            } else { // make it bigger
+
+                                float textScaleSize = (float) (percentDone - 0.5) * 2;
+                                paint.setTextSize(textSize * textScaleSize);
+
+                                float cellScaleSize = - cellSize / 16 * (1 - textScaleSize);
+                                bitmapCell[index].setBounds((int) (sX + cellScaleSize), (int) (sY + cellScaleSize), (int) (eX - cellScaleSize), (int) (eY - cellScaleSize));
+                                bitmapCell[index].draw(canvas);
+                            }
+                        } else if (aCell.getAnimationType() == MainGame.CHECK_WRONG_ANIMATION){ // Check right animation
+                            double percentDone = aCell.getPercentageDone();
+                            if(percentDone < 0.5) {// make it smaller
+                                float textScaleSize = (float) (0.5 - percentDone) * 2;
+                                paint.setTextSize(textSize * textScaleSize);
+
+                                float cellScaleSize =  cellSize / 8 * (1 - textScaleSize);
+                                bitmapCell[index].setBounds((int) (sX + cellScaleSize), (int) (sY + cellScaleSize), (int) (eX - cellScaleSize), (int) (eY - cellScaleSize));
+                                bitmapCell[index].draw(canvas);
+                            } else { // make it bigger
+
+                                float textScaleSize = (float) (percentDone - 0.5) * 2;
+                                paint.setTextSize(textSize * textScaleSize);
+
+                                float cellScaleSize =  cellSize / 8 * (1 - textScaleSize);
+                                bitmapCell[index].setBounds((int) (sX + cellScaleSize), (int) (sY + cellScaleSize), (int) (eX - cellScaleSize), (int) (eY - cellScaleSize));
+                                bitmapCell[index].draw(canvas);
+                            }
                         }
                         animated = true;
                     }
@@ -389,9 +440,11 @@ public class MainView extends View {
         BitmapDrawable displayOverlay = null;
         if(game.gameShow()){
             displayOverlay = showGameOverlay;
+            continueButtonEnabled = true;
         }
         else if (game.gameWon()) {
-                displayOverlay = winGameFinalOverlay;
+            displayOverlay = winGameFinalOverlay;
+            continueButtonEnabled = true;
         } else if (game.gameLost()) {
             displayOverlay = loseGameOverlay;
         }
@@ -420,8 +473,8 @@ public class MainView extends View {
             int textBottom = middleY - centerText();
             canvas.drawText(getResources().getString(R.string.show), middleX, textBottom, paint);
             paint.setTextSize(bodyTextSize);
-            //String text = getResources().getString(R.string.go_on);
-           // canvas.drawText(text, middleX, textBottom + textPaddingSize * 2 - centerText() * 2, paint);
+            String text = getResources().getString(R.string.go_on);
+            canvas.drawText(text, middleX, textBottom + textPaddingSize * 2 - centerText() * 2, paint);
         }
         else if (win) {
             lightUpRectangle.setAlpha(127);
@@ -457,7 +510,9 @@ public class MainView extends View {
         drawBackground(canvas);
         drawBackgroundGrid(canvas);
         drawInstructions(canvas);
-        drawReadyButton(canvas);
+        drawCheckButton(canvas);
+
+        //drawReadyButton(canvas);
 
     }
 
@@ -594,15 +649,10 @@ public class MainView extends View {
         sXNewGame = (endingX - iconSize);
         sXUndo = sXNewGame - iconSize * 3 / 2 - iconPaddingSize;
 
-        paint.setTextSize(readyTextSize);
-        int middleX = (endingX - startingX) / 2;
-        float measureText = paint.measureText(getResources().getString(R.string.ready));
-        Rect bounds = new Rect();
-        paint.getTextBounds(getResources().getString(R.string.ready), 0, getResources().getString(R.string.ready).length(), bounds);
-        sXReady = (int)(width/2 - bounds.width() / 2 - textSize / 2);
-        eXReady = (int)(width/2 + bounds.width() / 2 + textSize / 2);
-        eYReady = height - bounds.height() / 2 + (int)textSize / 3;
-        sYReady = eYReady - bounds.height() - (int)textSize / 3;
+        sXReady = width/2 - iconSize ;
+        eXReady = width/2 + iconSize ;
+        sYReady = (int)(endingY + instructionsTextSize + textPaddingSize);
+        eYReady = sYReady + iconSize * 2 ;
 
         resyncTime();
     }

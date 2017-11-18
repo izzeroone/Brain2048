@@ -137,17 +137,23 @@ class InputListener implements View.OnTouchListener {
                                     .setMessage(R.string.reset_dialog_message)
                                     .show();
                         } else {
-                            mView.game.newGame();
+                           mView.game.newGame();
                         }
 
                     } else if (iconPressed(mView.sXUndo, mView.sYIcons)) {
                         mView.game.revertUndoState();
                     } else if (isTap(2) && inRange(mView.startingX, x, mView.endingX)
                             && inRange(mView.startingY, x, mView.endingY) && mView.continueButtonEnabled) {
-                        mView.game.newGame();
-                    } else if (rectanglePressed(mView.sXReady, mView.sYReady, mView.eXReady, mView.eYReady)){
-                        Log.d("Game stared", "onTouch: ");
-                        mView.game.gameStart();
+                        if(mView.game.gameShow()){
+                            mView.game.gameStart();
+                        } else {
+                           // mView.game.newGame();
+                        }
+                    } else if (isTap(2) && inRange(mView.sXReady, x, mView.eXReady)
+                            && inRange(mView.sYReady, y, mView.eYReady)){
+                        //check
+                        Log.d("Tap", "onTouch: ");
+                        mView.game.checkWinState();
                     }
                 }
         }
