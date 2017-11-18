@@ -126,7 +126,7 @@ public class Grid {
         }
     }
 
-    private void clearUndoGrid() {
+    public void clearUndoGrid() {
         for (int xx = 0; xx < field.length; xx++) {
             for (int yy = 0; yy < field[0].length; yy++) {
                 undoField[xx][yy] = null;
@@ -145,4 +145,17 @@ public class Grid {
         }
         return  count;
     }
+
+    public int countUndoOccupiedCell(){
+        int count = 0;
+        for (int xx = 0; xx < undoField.length; xx++) {
+            for (int yy = 0; yy < undoField[0].length; yy++) {
+                if(undoField[xx][yy] != null){
+                    count++;
+                }
+            }
+        }
+        return  count;
+    }
+
 }

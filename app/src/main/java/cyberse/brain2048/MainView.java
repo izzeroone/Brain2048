@@ -69,6 +69,7 @@ public class MainView extends View {
     private BitmapDrawable loseGameOverlay;
     private BitmapDrawable winGameContinueOverlay;
     private BitmapDrawable winGameFinalOverlay;
+    private BitmapDrawable showGameOverlay;
     //Text variables
     private int sYAll;
     private int titleStartYAll;
@@ -122,9 +123,6 @@ public class MainView extends View {
             drawEndGameState(canvas);
         }
 
-        if (!game.canContinue()) {
-            drawEndlessText(canvas);
-        }
 
         //Refresh the screen if there is still an animation running
         if (game.aGrid.isAnimationActive()) {
@@ -256,7 +254,7 @@ public class MainView extends View {
         paint.getFontMetrics(fm);
 
         drawDrawable(canvas,
-                backgroundRectangle,
+                lightUpRectangle,
                 sXReady,
                 sYReady,
                 eXReady,
@@ -265,22 +263,7 @@ public class MainView extends View {
 
 
         canvas.drawText(getResources().getString(R.string.ready), sXReady + textSize / 2, eYReady - textSize / 3, paint);
-        //drawDigit(canvas, paint, sXReady, sYReady,getResources().getString(R.string.ready) );
     }
-
-    private void drawDigit(Canvas canvas, Paint tempTextPaint,  float cX, float cY, String text) {
-
-        tempTextPaint.setAntiAlias(true);
-        tempTextPaint.setStyle(Paint.Style.FILL);
-
-        float textWidth = tempTextPaint.measureText(text);
-        //if cX and cY are the origin coordinates of the your rectangle
-        //cX-(textWidth/2) = The x-coordinate of the origin of the text being drawn
-        //cY+(textSize/2) =  The y-coordinate of the origin of the text being drawn
-
-        canvas.drawText(text, cX-(textWidth/2), cY+(textSize/2), tempTextPaint);
-    }
-
     private void drawHeader(Canvas canvas) {
         paint.setTextSize(headerTextSize);
         paint.setColor(getResources().getColor(R.color.text_black));
@@ -404,13 +387,11 @@ public class MainView extends View {
             }
         }
         BitmapDrawable displayOverlay = null;
-        if (game.gameWon()) {
-            if (game.canContinue()) {
-                continueButtonEnabled = true;
-                displayOverlay = winGameContinueOverlay;
-            } else {
+        if(game.gameShow()){
+            displayOverlay = showGameOverlay;
+        }
+        else if (game.gameWon()) {
                 displayOverlay = winGameFinalOverlay;
-            }
         } else if (game.gameLost()) {
             displayOverlay = loseGameOverlay;
         }
@@ -422,19 +403,27 @@ public class MainView extends View {
         }
     }
 
-    private void drawEndlessText(Canvas canvas) {
-        paint.setTextAlign(Paint.Align.LEFT);
-        paint.setTextSize(bodyTextSize);
-        paint.setColor(getResources().getColor(R.color.text_black));
-        canvas.drawText(getResources().getString(R.string.endless), startingX, sYIcons - centerText() * 2, paint);
-    }
 
-    private void createEndGameStates(Canvas canvas, boolean win, boolean showButton) {
+    private void createEndGameStates(Canvas canvas, boolean win, boolean show) {
         int width = endingX - startingX;
         int length = endingY - startingY;
         int middleX = width / 2;
         int middleY = length / 2;
-        if (win) {
+        if (show){
+            lightUpRectangle.setAlpha(127);
+            drawDrawable(canvas, lightUpRectangle, 0, 0, width, length);
+            lightUpRectangle.setAlpha(255);
+            paint.setColor(getResources().getColor(R.color.text_white));
+            paint.setAlpha(255);
+            paint.setTextSize(gameOverTextSize);
+            paint.setTextAlign(Paint.Align.CENTER);
+            int textBottom = middleY - centerText();
+            canvas.drawText(getResources().getString(R.string.show), middleX, textBottom, paint);
+            paint.setTextSize(bodyTextSize);
+            //String text = getResources().getString(R.string.go_on);
+           // canvas.drawText(text, middleX, textBottom + textPaddingSize * 2 - centerText() * 2, paint);
+        }
+        else if (win) {
             lightUpRectangle.setAlpha(127);
             drawDrawable(canvas, lightUpRectangle, 0, 0, width, length);
             lightUpRectangle.setAlpha(255);
@@ -445,8 +434,7 @@ public class MainView extends View {
             int textBottom = middleY - centerText();
             canvas.drawText(getResources().getString(R.string.you_win), middleX, textBottom, paint);
             paint.setTextSize(bodyTextSize);
-            String text = showButton ? getResources().getString(R.string.go_on) :
-                    getResources().getString(R.string.for_now);
+            String text = getResources().getString(R.string.go_on);
             canvas.drawText(text, middleX, textBottom + textPaddingSize * 2 - centerText() * 2, paint);
         } else {
             fadeRectangle.setAlpha(127);
@@ -516,12 +504,14 @@ public class MainView extends View {
         //Initialize overlays
         Bitmap bitmap = Bitmap.createBitmap(endingX - startingX, endingY - startingY, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        createEndGameStates(canvas, true, true);
-        winGameContinueOverlay = new BitmapDrawable(resources, bitmap);
+        createEndGameStates(canvas, false, true);
+        showGameOverlay = new BitmapDrawable(resources, bitmap);
+
         bitmap = Bitmap.createBitmap(endingX - startingX, endingY - startingY, Bitmap.Config.ARGB_8888);
         canvas = new Canvas(bitmap);
         createEndGameStates(canvas, true, false);
         winGameFinalOverlay = new BitmapDrawable(resources, bitmap);
+
         bitmap = Bitmap.createBitmap(endingX - startingX, endingY - startingY, Bitmap.Config.ARGB_8888);
         canvas = new Canvas(bitmap);
         createEndGameStates(canvas, false, false);
