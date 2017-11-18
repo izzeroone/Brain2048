@@ -111,7 +111,7 @@ public class MainGame {
     {
         if(grid.field[x][y] == null)
         {
-            int value = (int)(Math.random() * 3) + 1;
+            int value = Math.random() <= 0.5 ? 1 : Math.random() <= 0.6 ? 2 : 3;
             Tile tile = new Tile(new Cell(x, y), value);
             spawnTile(tile);
         }

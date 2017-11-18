@@ -63,6 +63,7 @@ public class MainView extends View {
     private Drawable backgroundRectangle;
     private Drawable lightUpRectangle;
     private Drawable fadeRectangle;
+    private Drawable showRectangle;
     private Bitmap background = null;
     private BitmapDrawable loseGameOverlay;
     private BitmapDrawable winGameFinalOverlay;
@@ -86,6 +87,7 @@ public class MainView extends View {
             backgroundRectangle = resources.getDrawable(R.drawable.background_rectangle);
             lightUpRectangle = resources.getDrawable(R.drawable.light_up_rectangle);
             fadeRectangle = resources.getDrawable(R.drawable.fade_rectangle);
+            showRectangle = resources.getDrawable(R.drawable.show_rectangle);
             this.setBackgroundColor(resources.getColor(R.color.background));
             Typeface font = Typeface.createFromAsset(resources.getAssets(), "fonts/ClearSans-Bold.ttf");
             paint.setTypeface(font);
@@ -263,23 +265,7 @@ public class MainView extends View {
 
     }
 
-    private void drawReadyButton(Canvas canvas) {
-        paint.setTextSize(readyTextSize);
-        paint.setTextAlign(Paint.Align.LEFT);
-        Paint.FontMetrics fm = new Paint.FontMetrics();
-        paint.getFontMetrics(fm);
 
-        drawDrawable(canvas,
-                lightUpRectangle,
-                sXReady,
-                sYReady,
-                eXReady,
-                eYReady
-        );
-
-
-        canvas.drawText(getResources().getString(R.string.ready), sXReady + textSize / 2, eYReady - textSize / 3, paint);
-    }
     private void drawHeader(Canvas canvas) {
         paint.setTextSize(headerTextSize);
         paint.setColor(getResources().getColor(R.color.text_black));
@@ -463,9 +449,9 @@ public class MainView extends View {
         int middleX = width / 2;
         int middleY = length / 2;
         if (show){
-            lightUpRectangle.setAlpha(127);
-            drawDrawable(canvas, lightUpRectangle, 0, 0, width, length);
-            lightUpRectangle.setAlpha(255);
+            showRectangle.setAlpha(70);
+            drawDrawable(canvas, showRectangle, 0, 0, width, length);
+            showRectangle.setAlpha(255);
             paint.setColor(getResources().getColor(R.color.text_white));
             paint.setAlpha(255);
             paint.setTextSize(gameOverTextSize);
@@ -648,11 +634,11 @@ public class MainView extends View {
         sYIcons = (startingY + eYAll) / 2 - iconSize / 2;
         sXNewGame = (endingX - iconSize);
         sXUndo = sXNewGame - iconSize * 3 / 2 - iconPaddingSize;
-
-        sXReady = width/2 - iconSize ;
-        eXReady = width/2 + iconSize ;
-        sYReady = (int)(endingY + instructionsTextSize + textPaddingSize);
-        eYReady = sYReady + iconSize * 2 ;
+ ;
+        sXReady = (int)(width/2 - iconSize * 0.75) ;
+        eXReady = (int)(width/2 + iconSize * 0.75) ;
+        sYReady = (int)(endingY + instructionsTextSize + textPaddingSize * 2);
+        eYReady = (int)(sYReady + iconSize * 1.5) ;
 
         resyncTime();
     }
